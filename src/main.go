@@ -12,26 +12,58 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// [START gae_go111_app]
-
-// Sample helloworld is an App Engine app.
 package main
 
-// [START import]
 import (
+	"cloud.google.com/go/datastore"
+	"context"
 	"fmt"
+	"github.com/labstack/echo"
+	"go.mercari.io/datastore/boom"
+	"go.mercari.io/datastore/clouddatastore"
 	"log"
 	"net/http"
 	"os"
 )
 
-// [END import]
-// [START main_func]
+type Post struct {
+	Kind	string `datastore:"-" boom:"kind,post"`
+	ID		int64 `datastore:"-" boom:"id"`
+	Content	string
+}
 
 func main() {
-	http.HandleFunc("/", indexHandler)
+	e := echo.New()
+	http.Handle("/", e)
 
-	// [START setting_port]
+	projectId := os.Getenv("PROJECT_ID")
+	if projectId == "" {
+		projectId = "jankenonline"
+	}
+
+	e.GET("/", func (e echo.Context) error {
+		ctx := context.Background()
+		dataClient, err := datastore.NewClient(ctx, projectId)
+		if err != nil {
+			log.Fatalf("failed to get client (reason: %v)", err)
+			return e.String(http.StatusInternalServerError, "error")
+		}
+		client, err := clouddatastore.FromClient(ctx, dataClient)
+		if err != nil {
+			log.Fatalf("failed to get datastoreclient (reason: %v)", err)
+			return e.String(http.StatusInternalServerError, "error")
+		}
+		defer client.Close()
+		b := boom.FromClient(ctx, client)
+		post := &Post{Content:"test"}
+		if _, err := b.Put(post); err != nil {
+			log.Fatalf("failed to put datastore (reason: %v)", err)
+			return e.String(http.StatusInternalServerError, "error")
+		}
+
+		return e.String(http.StatusOK, "Hello Echo!")
+	})
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
@@ -40,14 +72,8 @@ func main() {
 
 	log.Printf("Listening on port %s", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), nil))
-	// [END setting_port]
 }
 
-// [END main_func]
-
-// [START indexHandler]
-
-// indexHandler responds to requests with our greeting.
 func indexHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		http.NotFound(w, r)
@@ -55,6 +81,3 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Fprint(w, "Hello, World!")
 }
-
-// [END indexHandler]
-// [END gae_go111_app]
