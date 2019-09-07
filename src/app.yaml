@@ -14,4 +14,4 @@ automatic_scaling:
   max_pending_latency: automatic
   min_pending_latency: 3000ms
 env_variables:
-  PROJECT_ID: "jankenonline"
+  PROJECT_ID: "test-project"
