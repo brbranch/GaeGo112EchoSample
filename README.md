@@ -3,6 +3,9 @@
 GAE+Go1.12でEchoサーバーを立ち上げるためのサンプルです。
 DataStoreへのアクセスはmercari/datastoreのboomを利用しています。
 
+Qiita
+https://qiita.com/br_branch/items/a26480a05ecb97ac20b3
+
 ## Requirements
 * goenv 2.0.0beta11
 * go v1.12.9
