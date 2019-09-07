@@ -7,7 +7,7 @@ DataStoreへのアクセスはmercari/datastoreのboomを利用しています�
 #### gae_echo
 https://qiita.com/br_branch/items/a26480a05ecb97ac20b3
 #### feature/redis
-
+https://qiita.com/br_branch/items/1b63b2c1dd9b4ff3931e
 
 ## Requirements
 * goenv 2.0.0beta11
