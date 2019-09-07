@@ -2,9 +2,16 @@ package handler
 
 import (
 	"cloud.google.com/go/datastore"
+	"context"
+	"fmt"
+	client2 "gaego112echosample/client"
 	"github.com/labstack/echo"
+	datastore2 "go.mercari.io/datastore"
 	"go.mercari.io/datastore/boom"
 	"go.mercari.io/datastore/clouddatastore"
+	"go.mercari.io/datastore/dsmiddleware/rediscache"
+
+
 	"log"
 	"net/http"
 	"os"
@@ -34,6 +41,24 @@ func HelloWorld(e echo.Context) error {
 		return e.String(http.StatusInternalServerError, "error")
 	}
 	defer client.Close()
+
+	// Redisとの連携を行う
+	redisConn := client2.GetRedisClient().GetConnection()
+	defer redisConn.Close()
+	mw := rediscache.New(redisConn,
+		// ログが出るようにする
+		rediscache.WithLogger(func(ctx context.Context, format string, args ...interface{}){
+			log.Printf(format, args...)
+		}),
+		// Redisに登録されてるか見るためにログに出力するようにしてる
+		rediscache.WithCacheKey(func(key datastore2.Key) string {
+			cacheKey := fmt.Sprintf("cache:%s", key.Encode())
+			log.Printf("redis cache key: %s", cacheKey)
+			return cacheKey
+		}),
+	)
+	client.AppendMiddleware(mw)
+
 	// boomを利用
 	b := boom.FromClient(ctx, client)
 	post := &Post{ID: 12345, Content:"test"}
@@ -50,4 +75,10 @@ func HelloWorld(e echo.Context) error {
 	}
 
 	return e.JSON(http.StatusOK, getPost)
+}
+
+func HelloRedis(e echo.Context) error {
+
+
+	return nil
 }
