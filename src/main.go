@@ -15,54 +15,20 @@
 package main
 
 import (
-	"cloud.google.com/go/datastore"
-	"context"
 	"fmt"
+	"gaego112echosample/handler"
 	"github.com/labstack/echo"
-	"go.mercari.io/datastore/boom"
-	"go.mercari.io/datastore/clouddatastore"
 	"log"
 	"net/http"
 	"os"
 )
 
-type Post struct {
-	Kind	string `datastore:"-" boom:"kind,post"`
-	ID		int64 `datastore:"-" boom:"id"`
-	Content	string
-}
 
 func main() {
 	e := echo.New()
 	http.Handle("/", e)
 
-	projectId := os.Getenv("PROJECT_ID")
-	if projectId == "" {
-		projectId = "jankenonline"
-	}
-
-	e.GET("/", func (e echo.Context) error {
-		ctx := context.Background()
-		dataClient, err := datastore.NewClient(ctx, projectId)
-		if err != nil {
-			log.Fatalf("failed to get client (reason: %v)", err)
-			return e.String(http.StatusInternalServerError, "error")
-		}
-		client, err := clouddatastore.FromClient(ctx, dataClient)
-		if err != nil {
-			log.Fatalf("failed to get datastoreclient (reason: %v)", err)
-			return e.String(http.StatusInternalServerError, "error")
-		}
-		defer client.Close()
-		b := boom.FromClient(ctx, client)
-		post := &Post{Content:"test"}
-		if _, err := b.Put(post); err != nil {
-			log.Fatalf("failed to put datastore (reason: %v)", err)
-			return e.String(http.StatusInternalServerError, "error")
-		}
-
-		return e.String(http.StatusOK, "Hello Echo!")
-	})
+	e.GET("/", handler.HelloWorld)
 
 	port := os.Getenv("PORT")
 	if port == "" {
