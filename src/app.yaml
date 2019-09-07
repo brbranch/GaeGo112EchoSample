@@ -15,3 +15,5 @@ automatic_scaling:
   min_pending_latency: 3000ms
 env_variables:
   PROJECT_ID: "test-project"
+  REDIS_ADDR: ""
+  REDIS_PASS: ""

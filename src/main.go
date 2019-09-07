@@ -16,6 +16,7 @@ package main
 
 import (
 	"fmt"
+	"gaego112echosample/client"
 	"gaego112echosample/handler"
 	"github.com/labstack/echo"
 	"log"
@@ -23,12 +24,34 @@ import (
 	"os"
 )
 
-
 func main() {
+	redisAddr := os.Getenv("REDIS_ADDR")
+	redisPass := os.Getenv("REDIS_PASS")
+
+	client.InitRedis(redisAddr, redisPass)
+
 	e := echo.New()
 	http.Handle("/", e)
 
 	e.GET("/", handler.HelloWorld)
+
+	// Redisの操作
+	e.GET("/redis/put/:name", func(e echo.Context) error {
+		name := e.Param("name")
+		if err := client.GetRedisClient().PutString("test", name); err != nil {
+			log.Fatalf("faield to get redis (reason: %v)", err)
+			return e.String(http.StatusInternalServerError, "error")
+		}
+		return e.String(http.StatusOK, fmt.Sprintf("put redis: %s", name))
+	})
+	e.GET("/redis/get", func(e echo.Context) error {
+		if name, err := client.GetRedisClient().GetString("test"); err != nil {
+			log.Fatalf("faield to get redis (reason: %v)", err)
+			return e.String(http.StatusInternalServerError, "error")
+		} else {
+			return e.String(http.StatusOK, fmt.Sprintf("get redis: %s", name))
+		}
+	})
 
 	port := os.Getenv("PORT")
 	if port == "" {
